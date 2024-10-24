@@ -1,8 +1,11 @@
 // Copyright (C) 2024 Jean "Pixfri" Letessier 
-// This file is part of Basalte programming language.
+// This file is part of the Basalte programming language.
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #pragma once
+
+#ifndef BASALTE_COMMON_PREREQUISITES_HPP
+#define BASALTE_COMMON_PREREQUISITES_HPP
 
 #ifdef BASALTE_PLATFORM_WIN32
     #define BASALTE_EXPORT __declspec(dllexport)
@@ -43,3 +46,5 @@ namespace Basalte {
 	using USize = size_t;
 
 }
+
+#endif // BASALTE_COMMON_PREREQUISITES_HPP

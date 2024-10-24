@@ -1,6 +1,8 @@
 -- Copyright (C) 2024 Jean "Pixfri" Letessier 
--- This file is part of Flashlight Engine.
+-- This file is part of the Basalte programming language.
 -- For conditions of distribution and use, see copyright notice in LICENSE
+
+local modules = BasalteModules
 
 local headerTemplate, inlineTemplate, sourceTemplate
 
@@ -12,7 +14,7 @@ set_menu({
     options = {
         {nil, "nocpp", "k", nil, "Set this to create a header-only class."},
         {nil, "name", "v", nil, "Class name" },
-        {nil, "target", "v", nil, "Target name" }
+        {nil, "module", "v", nil, "Module to create the class into" }
     } 
 })
 
@@ -24,27 +26,28 @@ on_run(function()
         os.raise("Missing class name")
     end
 
-    local target = option.get("target")
-    if not target then
-        os.raise("Missing target name")
+    local moduleName = option.get("module")
+    if not moduleName then
+        os.raise("Missing module name")
     end
 
     local className = path.basename(classPath)
 
     local files = {
-        { TargetPath = path.join("Include/Basalte" .. target, classPath) .. ".hpp", Template = headerTemplate },
-        { TargetPath = path.join("Include/Basalte" .. target, classPath) .. ".inl", Template = inlineTemplate }
+        { TargetPath = path.join("Include/Basalte", moduleName, classPath) .. ".hpp", Template = headerTemplate },
+        { TargetPath = path.join("Include/Basalte", moduleName, classPath) .. ".inl", Template = inlineTemplate }
     }
 
     if not option.get("nocpp") then
-        table.insert(files, { TargetPath = path.join("Source/Basalte" .. target, classPath) .. ".cpp", Template = sourceTemplate })
+        table.insert(files, { TargetPath = path.join("Source/Basalte", moduleName, classPath) .. ".cpp", Template = sourceTemplate })
     end
 
     local replacements = {
         CLASS_NAME = className,
         CLASS_PATH = classPath,
         COPYRIGHT = os.date("%Y") .. [[ Jean "Pixfri" Letessier ]],
-        TARGET = target
+        HEADER_GUARD = "BASALTE_" .. moduleName:upper() .. "_" .. classPath:gsub("[/\\]", "_"):upper() .. "_HPP",
+        MODULE_NAME = moduleName
     }
 
     for _, file in pairs(files) do
@@ -63,14 +66,17 @@ end)
 
 headerTemplate = [[
 // Copyright (C) %COPYRIGHT%
-// This file is part of Basalte programming language.
+// This file is part of the Basalte programming language.
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #pragma once
 
-#include <BasaltCommon/Prerequisities.hpp>
+#ifndef %HEADER_GUARD%
+#define %HEADER_GUARD%
 
-namespace Basalte::%TARGET% {
+#include <Basalte/Common/Prerequisites.hpp>
+
+namespace Basalte::%MODULE_NAME% {
     class %CLASS_NAME% {
     public:
         %CLASS_NAME%() = default;
@@ -86,7 +92,9 @@ namespace Basalte::%TARGET% {
     };
 }
 
-#include <Basalte%TARGET%/%CLASS_PATH%.inl>
+#include <Basalte/%MODULE_NAME%/%CLASS_PATH%.inl>
+
+#endif // %HEADER_GUARD%
 ]]
 
 inlineTemplate = [[
@@ -94,17 +102,19 @@ inlineTemplate = [[
 // This file is part of the Basalte programming language.
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-namespace Basalte::%TARGET% {
+#pragma once
+
+namespace Basalte::%MODULE_NAME% {
 }
 ]]
 
 sourceTemplate = [[
 // Copyright (C) %COPYRIGHT%
-// This file is part of Basalte programming language.
+// This file is part of the Basalte programming language.
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#include <Basalte%TARGET%/%CLASS_PATH%.hpp>
+#include <Basalte/%MODULE_NAME%/%CLASS_PATH%.hpp>
 
-namespace Basalte::%TARGET% {
+namespace Basalte::%MODULE_NAME% {
 }
 ]]
