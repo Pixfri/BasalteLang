@@ -15,6 +15,7 @@
     #define BASALTE_IMPORT __attribute__((visibility("default")))
 #endif
 
+#include <cstddef>
 #include <cstdint>
 #include <climits>
 
